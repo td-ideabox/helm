@@ -119,8 +119,11 @@ flapAnimationTime :: Time
 flapAnimationTime = 0.3*second
 
 stillFlapping :: Time -> Maybe Time -> Bool
-stillFlapping now Nothing = False
-stillFlapping now (Just lastFlap) = now < lastFlap + flapAnimationTime
+stillFlapping now lastFlap = 
+    case lastFlap of
+        Nothing -> False
+        Just lastFlap -> now < lastFlap + flapAnimationTime
+
 
 flapperDims :: V2 Double
 flapperDims = V2 100 100
