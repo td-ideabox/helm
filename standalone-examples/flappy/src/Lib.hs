@@ -142,28 +142,31 @@ relevantObs Model { .. } =
 -- | Are any obstacles touching the flapper?
 touchingObs :: Model -> Bool
 touchingObs model@Model { .. } =
-  isJust $ find f $ relevantObs model
+    let
+        V2 x y = flapperPos
+        V2 w h = flapperDims
 
-  where
-    V2 x y = flapperPos
-    V2 w h = flapperDims
+        -- The flapper pos is centered. Turn it into a box.
+        ftx = x - w / 2
+        fty = y - h / 2
+        fbx = x + w / 2
+        fby = y + h / 2
 
-    -- The flapper pos is centered. Turn it into a box.
-    ftx = x - w / 2
-    fty = y - h / 2
-    fbx = x + w / 2
-    fby = y + h / 2
-
-    -- Check if the flapper box and obs box intersect.
-    -- If so, we're dead.
-    f NoObstacle = False
-    f Obstacle { .. } =
-      max tx ftx < min bx fbx &&
-      max ty fty < min by fby
-
-      where
-        V2 tx ty = obsTopLeft
-        V2 bx by = obsBottomRight
+        -- Check if the flapper box and obs box intersect.
+        -- If so, we're dead.
+        f obstacleCases =
+            case obstacleCases of
+                NoObstacle -> False
+                Obstacle {..} -> 
+                    let
+                        V2 tx ty = obsTopLeft
+                        V2 bx by = obsBottomRight
+                    
+                    in
+                        max tx ftx < min bx fbx &&
+                        max ty fty < min by fby
+    in
+        isJust $ find f $ relevantObs model
 
 -- | Is our flapper touching the lava at the bottom of the screen?
 inLava :: Model -> Bool
