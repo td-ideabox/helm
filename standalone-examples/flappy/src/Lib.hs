@@ -171,12 +171,12 @@ touchingObs model@Model { .. } =
 -- | Is our flapper touching the lava at the bottom of the screen?
 inLava :: Model -> Bool
 inLava Model { .. } =
-  y + fh  / 2 >= h / 2 - lavaHeight
-
-  where
-    V2 _ fh = flapperDims
-    V2 x y = flapperPos
-    V2 w h = fromIntegral <$> windowDims
+    let
+        V2 _ fh = flapperDims
+        V2 x y = flapperPos
+        V2 w h = fromIntegral <$> windowDims
+    in
+        y + fh  / 2 >= h / 2 - lavaHeight
 
 -- | Should our flapper die? Only checks if they should -
 -- DOES NOT transition the player status to dead.
