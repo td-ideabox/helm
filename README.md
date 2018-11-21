@@ -5,7 +5,7 @@
   <a href="https://circleci.com/gh/z0w0/helm" title="CircleCI"><img src="https://circleci.com/gh/z0w0/helm.svg?style=svg" /></a>
 </p>
 
-Helm is **currently looking for co-maintainers**. If you would like to help to develop Helm further, please contact me.
+Fork of Helm, happy to accept any contributions! 
 
 ## Introduction
 
@@ -83,10 +83,16 @@ it globally will let you run the example Helm games. See the next section.
 
 ## Getting Started
 
-Check out the `examples` directory for some examples; the `hello` example is a
+Check out the `examples` directory for some examples (note below about standalone examples); the `hello` example is a
 particularly good start and `flappy` is a bit more advanced. We could always
 use more examples so if you end up making something cool and lightweight that
 you'd think would be a good one, feel free to open a pull request!
+
+### Standalone Examples
+If you want to just copy/paste a project which works out of the box (as though it were a fresh
+`stack new` project) please look in the `standalone-examples` directory. There are a couple
+differences between what a project actually looks like when it's built independent of this
+project. The stuff in `examples` is part of the helm source, so it plays by different rules. 
 
 If you have installed Helm globally using Stack, you can run the `flappy` example using:
 
