@@ -1,3 +1,4 @@
 .stack-work/
 flappy.cabal
 *~
+.DS_Store

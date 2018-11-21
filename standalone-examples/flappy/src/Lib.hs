@@ -128,12 +128,13 @@ flapperDims = V2 100 100
 -- | Only the obstacles the player has seen/can see.
 relevantObs :: Model -> [Obstacle]
 relevantObs Model { .. } =
-  take n obstacles
+    let
+        V2 x _ = flapperPos
+        V2 w _ = fromIntegral <$> windowDims
+        n = max 0 $ floor $ (x - obsOffset + w) / (obsMargin + obsWidth)
+    in
+        take n obstacles
 
-  where
-    V2 x _ = flapperPos
-    V2 w _ = fromIntegral <$> windowDims
-    n = max 0 $ floor $ (x - obsOffset + w) / (obsMargin + obsWidth)
 
 -- | Are any obstacles touching the flapper?
 touchingObs :: Model -> Bool
