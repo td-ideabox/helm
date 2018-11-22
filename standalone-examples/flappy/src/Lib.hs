@@ -360,10 +360,10 @@ subscriptions = Sub.batch
 -- | Turn some second value into a pretty pluralized form (for UI).
 secondsText :: Time -> String
 secondsText t =
-  show s ++ if s /= 1 then " seconds" else " second"
-
-  where
+  let
     s = round $ Time.inSeconds t
+  in
+    show s ++ if s /= 1 then " seconds" else " second"
 
 -- | The overlay displayed when the player is dead.
 deadOverlay :: Color -> Model -> Form SDLEngine
