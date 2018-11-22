@@ -368,22 +368,22 @@ secondsText t =
 -- | The overlay displayed when the player is dead.
 deadOverlay :: Color -> Model -> Form SDLEngine
 deadOverlay color Model { ..  } =
- group
-   [ move (V2 0 (-25)) $ text $ Text.height 30 $
-                                Text.color color $
-                                Text.toText "Oops, you're dead."
-
-   , move (V2 0 25) $ text $ Text.height 12 $
-                             Text.color color $
-                             Text.toText score
-
-   , move (V2 0 50) $ text $ Text.height 12 $
-                             Text.color color $
-                             Text.toText "Press space to restart"
-   ]
-
-  where
+  let
     score = "You lasted " ++ secondsText timeScore
+  in
+    group
+      [ move (V2 0 (-25)) $ text $ Text.height 30 $
+                                    Text.color color $
+                                    Text.toText "Oops, you're dead."
+
+      , move (V2 0 25) $ text $ Text.height 12 $
+                                Text.color color $
+                                Text.toText score
+
+      , move (V2 0 50) $ text $ Text.height 12 $
+                                Text.color color $
+                                Text.toText "Press space to restart"
+      ]
 
 -- | The overlay displayed when the player is waiting to play.
 waitingOverlay :: Color -> Form SDLEngine
