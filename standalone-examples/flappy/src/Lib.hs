@@ -195,24 +195,8 @@ update model@Model {..} action =
           (model { playerStatus = Playing }, Cmd.none)
         _ -> (model, Cmd.none)
     
-    Animate dt -> 
-      if playerStatus `notElem` [Playing, Dead] then (model, Cmd.none)
-      else
-        ( model
-          { flapperPos   = if y < -hh
-                          then V2 x (-hh)
-                          else pos
-          , flapperVel   = vel
-          , playerStatus = if dead
-                          then Dead
-                          else Playing
-          , timeScore    = elapsed
-          , timeSpeed    = speed
-          }
-        , Cmd.none
-        )
-
-      where
+    Animate dt ->
+      let
         -- | If the player is actually playing, increase the score.
         -- They might be at the death screen (which is also animated).
         elapsed = if dead
@@ -235,6 +219,23 @@ update model@Model {..} action =
         V2 _ h = fromIntegral <$> windowDims
         hh = h / 2
         dead = (playerStatus == Dead) || shouldDie model
+
+      in
+        if playerStatus `notElem` [Playing, Dead] then (model, Cmd.none)
+        else
+          ( model
+            { flapperPos   = if y < -hh
+                            then V2 x (-hh)
+                            else pos
+            , flapperVel   = vel
+            , playerStatus = if dead
+                            then Dead
+                            else Playing
+            , timeScore    = elapsed
+            , timeSpeed    = speed
+            }
+          , Cmd.none
+          )
 
     -- | The player has clicked using their mouse.
     -- | Process the "flap" of our flapper's wings.
