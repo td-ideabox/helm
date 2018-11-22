@@ -418,19 +418,8 @@ playingOverlay color Model { .. } =
           [])
 
 view :: M.Map String (Image SDLEngine) -> Model -> Graphics SDLEngine
-view assets model@Model { .. } = Graphics2D $
-  center (V2 (w / 2) (h / 2)) $ collage
-    [ backdrop
-    , toForm $ center (V2 (-x) 0) $ collage
-        [ move (flapperPos - flapperDims/2) flapper
-        , group $ map structure $ relevantObs model
-        ]
-
-    , lava
-    , overlay playerStatus model
-    ]
-
-  where
+view assets model@Model { .. } =
+  let
     dims@(V2 w h) = fromIntegral <$> windowDims
     V2 x y = flapperPos
     overlayColor = rgb 1 1 1
@@ -442,17 +431,33 @@ view assets model@Model { .. } = Graphics2D $
     flapperSprite | playerStatus == Dead             = "birdDead"
                   | stillFlapping timeScore lastFlap = "birdFlap"
                   | otherwise                        = "bird"
-    flapper = image flapperDims (assets M.! flapperSprite)
-      where V2 _ dy = flapperVel
+    flapper =
+      let
+        V2 _ dy = flapperVel
+      in
+        image flapperDims (assets M.! flapperSprite)
     backdrop = filled (rgb 0.13 0.13 0.13) $ rect dims
     lava = move (V2 0 (h / 2 - lavaHeight / 2)) $ filled (rgb 0.72 0.11 0.11) $ rect $ V2 w lavaHeight
     structure NoObstacle = blank
     structure Obstacle { .. } =
-      move (V2 ((tx + bx) / 2) ((ty + by) / 2)) $ filled (rgb 0.38 0.49 0.55) $ rect $ V2 (bx - tx) (by - ty)
-
-      where
+      let
         V2 tx ty = obsTopLeft
         V2 bx by = obsBottomRight
+      in
+        move (V2 ((tx + bx) / 2) ((ty + by) / 2)) $ filled (rgb 0.38 0.49 0.55) $ rect $ V2 (bx - tx) (by - ty)
+  in
+    Graphics2D $
+    center (V2 (w / 2) (h / 2)) $ collage
+      [ backdrop
+      , toForm $ center (V2 (-x) 0) $ collage
+          [ move (flapperPos - flapperDims/2) flapper
+          , group $ map structure $ relevantObs model
+          ]
+
+      , lava
+      , overlay playerStatus model
+      ]
+
 
 runGame :: IO ()
 runGame = do
