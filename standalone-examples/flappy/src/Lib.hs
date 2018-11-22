@@ -281,16 +281,8 @@ update model@Model {..} action =
     -- new obstacles out of until infinity - which is perfect,
     -- as our player might just keep playing the game
     -- for an eternity and beyond.
-    SetupObstacles rng -> 
-      (model
-      { obstacles = scanl generate NoObstacle $
-                    zip [0..] $
-                    Rand.randoms rng
-      }
-      , Cmd.none
-      )
-
-      where
+    SetupObstacles rng ->
+      let
         -- | Generate an obstacle based based off the last obstacle
         -- generated and some random input.
         generate
@@ -298,16 +290,7 @@ update model@Model {..} action =
           -> (Int, Double) -- | First element is the obstacle index, second is random input between [0,1).
           -> Obstacle      -- | The generated obstacle.
         generate last (i, n) =
-          -- Randomly exclude obstacles, but don't do it for the first one.
-          if i > 0 && (n < lb || n > hb)
-          then NoObstacle
-          else
-            Obstacle
-              { obsTopLeft = V2 x y
-              , obsBottomRight = V2 (x + obsWidth) (y + height)
-              }
-
-          where
+          let
             lb = 0.2
             hb = 0.8
 
@@ -324,25 +307,42 @@ update model@Model {..} action =
 
             -- | Calc the obstacle height and
             calc NoObstacle =
-              -- Generate a random y and random height. This can be anywhere on the screen as
-              -- we're not next to an older obstacle.
-              (-hh' + n' * h', height')
-
-              where
+              let
                 height' = minHeight + (maxHeight - minHeight) * n'
+              in
+                -- Generate a random y and random height. This can be anywhere on the screen as
+                -- we're not next to an older obstacle.
+                (-hh' + n' * h', height')
 
             calc Obstacle { .. } =
-              -- We want the obstacle being generated to be in a similar position
-              -- to the last one generated. So we adjust the last position randomly
-              -- by a portion of the last generated obstacle's height.
-              ( max (-hh') $ min hh' $ ty + (n' - 0.5) * maxHeight
-              , height')
-
-              where
+              let
                 V2 tx ty = obsTopLeft
                 V2 bx by = obsBottomRight
                 lastHeight = by - ty
                 height' = min maxHeight $ lastHeight + (n' - 0.5) * minHeight
+              in
+                -- We want the obstacle being generated to be in a similar position
+                -- to the last one generated. So we adjust the last position randomly
+                -- by a portion of the last generated obstacle's height.
+                ( max (-hh') $ min hh' $ ty + (n' - 0.5) * maxHeight
+                , height')
+          in
+            -- Randomly exclude obstacles, but don't do it for the first one.
+            if i > 0 && (n < lb || n > hb)
+            then NoObstacle
+            else
+              Obstacle
+                { obsTopLeft = V2 x y
+                , obsBottomRight = V2 (x + obsWidth) (y + height)
+                }
+      in
+        (model
+        { obstacles = scanl generate NoObstacle $
+                      zip [0..] $
+                      Rand.randoms rng
+        }
+        , Cmd.none
+        )
 
     -- | Do nothing.
     _  -> (model, Cmd.none)
