@@ -401,21 +401,21 @@ waitingOverlay color =
 -- | The overlay when playing the game (i.e. HUD).
 playingOverlay :: Color -> Model -> Form SDLEngine
 playingOverlay color Model { .. } =
-  group $
-    [
-      move (V2 0 (-h / 2 + 25)) $ text $ Text.height 12 $
-                                         Text.color color $
-                                         Text.toText status
-    ] ++
-    (if playerStatus == Paused then [ centerNotice "Press P to resume" ] else
-       if timeScore < showPauseHelpFor then [ centerNotice "Press P to pause" ] else
-         [])
-
-  where
+  let
     status = secondsText timeScore ++ " | " ++ printf "%.2fx speed" timeSpeed
     centerNotice msg = move (V2 0 0) $ text $
                        Text.height 16 $ Text.color color $ Text.toText msg
     V2 _ h = fromIntegral <$> windowDims
+  in
+    group $
+      [
+        move (V2 0 (-h / 2 + 25)) $ text $ Text.height 12 $
+                                          Text.color color $
+                                          Text.toText status
+      ] ++
+      (if playerStatus == Paused then [ centerNotice "Press P to resume" ] else
+        if timeScore < showPauseHelpFor then [ centerNotice "Press P to pause" ] else
+          [])
 
 view :: M.Map String (Image SDLEngine) -> Model -> Graphics SDLEngine
 view assets model@Model { .. } = Graphics2D $
