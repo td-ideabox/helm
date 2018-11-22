@@ -183,164 +183,169 @@ inLava Model { .. } =
 shouldDie :: Model -> Bool
 shouldDie model = inLava model || touchingObs model
 
+
 update :: Model -> Action -> (Model, Cmd SDLEngine Action)
-update model@Model { .. } Pause
-  | playerStatus == Playing = (model { playerStatus = Paused }, Cmd.none)
-  | playerStatus == Paused  = (model { playerStatus = Playing }, Cmd.none)
-  | otherwise = (model, Cmd.none)
-
-update model@Model { .. } (Animate dt) =
-  if playerStatus `notElem` [Playing, Dead] then (model, Cmd.none)
-  else
-    ( model
-      { flapperPos   = if y < -hh
-                       then V2 x (-hh)
-                       else pos
-      , flapperVel   = vel
-      , playerStatus = if dead
-                       then Dead
-                       else Playing
-      , timeScore    = elapsed
-      , timeSpeed    = speed
-      }
-    , Cmd.none
-    )
-
-  where
-    -- | If the player is actually playing, increase the score.
-    -- They might be at the death screen (which is also animated).
-    elapsed = if dead
-              then timeScore
-              else timeScore + dt
-
-    dt' = dt * 0.005
-    gravity' = gravity * V2 dt' dt'
-
-    -- Make the movement right faster as the player gets further across.
-    speed = max 1 $ logBase 4 (2 + Time.inSeconds elapsed)
-    vel = if dead
-          then V2 0 1 * (flapperVel + gravity') -- No x-velocity while dead.
-          else flapperVel + gravity'
-
-    pos@(V2 x y) = flapperPos + vel + if dead
-                                      then V2 0 0
-                                      else scrollVel * V2 speed 0
-
-    V2 _ h = fromIntegral <$> windowDims
-    hh = h / 2
-    dead = (playerStatus == Dead) || shouldDie model
-
--- | The player has clicked using their mouse.
--- | Process the "flap" of our flapper's wings.
-update model@Model { .. } Flap
-  | playerStatus == Waiting =
-      -- new game
-      ( model
-        { flapperVel   = V2 0 (-flapAccel)
-        , playerStatus = Playing
-        , lastFlap     = Nothing
-        }
-      , Cmd.none
-      )
-  | playerStatus == Playing =
-    -- flap, if allowed
-    if stillFlapping timeScore lastFlap then (model, Cmd.none) else
-      ( model
-        { flapperVel   = V2 0 (-flapAccel)
-        , lastFlap     = Just timeScore
-        }
-      , Cmd.none
-      )
-  | otherwise = (model, Cmd.none)
-
--- | The player has pressed space while on the death screen.
--- Restart the game.
-update model@Model { .. } Restart =
-  if playerStatus /= Dead
-  then (model, Cmd.none)
-  else
-    ( model
-      { playerStatus = Waiting
-      , flapperPos   = V2 0 0
-      , flapperVel   = V2 0 0
-      , timeScore    = 0
-      }
-
-    -- Trigger a regeneration of obstacles
-    , Cmd.execute Rand.newStdGen SetupObstacles
-    )
-
--- | Initialize a list of all the obstacles in the game.
--- This works really nicely, as the list of obstacles
--- we produce is lazy and we can just keep generating
--- new obstacles out of until infinity - which is perfect,
--- as our player might just keep playing the game
--- for an eternity and beyond.
-update model (SetupObstacles rng) =
-  (model
-   { obstacles = scanl generate NoObstacle $
-                 zip [0..] $
-                 Rand.randoms rng
-   }
-  , Cmd.none
-  )
-
-  where
-    -- | Generate an obstacle based based off the last obstacle
-    -- generated and some random input.
-    generate
-      :: Obstacle      -- | The last obstacle generated (or 'NoObstacle' if first).
-      -> (Int, Double) -- | First element is the obstacle index, second is random input between [0,1).
-      -> Obstacle      -- | The generated obstacle.
-    generate last (i, n) =
-      -- Randomly exclude obstacles, but don't do it for the first one.
-      if i > 0 && (n < lb || n > hb)
-      then NoObstacle
+update model@Model {..} action =
+  case action of
+    Pause ->
+      case playerStatus of
+        Playing ->
+          (model { playerStatus = Paused }, Cmd.none)
+        Paused ->
+          (model { playerStatus = Playing }, Cmd.none)
+        _ -> (model, Cmd.none)
+    
+    Animate dt -> 
+      if playerStatus `notElem` [Playing, Dead] then (model, Cmd.none)
       else
-        Obstacle
-          { obsTopLeft = V2 x y
-          , obsBottomRight = V2 (x + obsWidth) (y + height)
+        ( model
+          { flapperPos   = if y < -hh
+                          then V2 x (-hh)
+                          else pos
+          , flapperVel   = vel
+          , playerStatus = if dead
+                          then Dead
+                          else Playing
+          , timeScore    = elapsed
+          , timeSpeed    = speed
           }
+        , Cmd.none
+        )
 
       where
-        lb = 0.2
-        hb = 0.8
+        -- | If the player is actually playing, increase the score.
+        -- They might be at the death screen (which is also animated).
+        elapsed = if dead
+                  then timeScore
+                  else timeScore + dt
 
-        -- We have to normalize the value here as we ignored < lb and > hb above.
-        -- Let's get this back to (0, 1]
-        n' = (n - lb) / (hb - lb)
-        x = obsOffset + (obsWidth + obsMargin) * fromIntegral i
+        dt' = dt * 0.005
+        gravity' = gravity * V2 dt' dt'
+
+        -- Make the movement right faster as the player gets further across.
+        speed = max 1 $ logBase 4 (2 + Time.inSeconds elapsed)
+        vel = if dead
+              then V2 0 1 * (flapperVel + gravity') -- No x-velocity while dead.
+              else flapperVel + gravity'
+
+        pos@(V2 x y) = flapperPos + vel + if dead
+                                          then V2 0 0
+                                          else scrollVel * V2 speed 0
+
         V2 _ h = fromIntegral <$> windowDims
-        h' = h - lavaHeight
-        hh' = h / 2
-        minHeight = 100
-        maxHeight = 300
-        (y, height) = calc last
+        hh = h / 2
+        dead = (playerStatus == Dead) || shouldDie model
 
-        -- | Calc the obstacle height and
-        calc NoObstacle =
-          -- Generate a random y and random height. This can be anywhere on the screen as
-          -- we're not next to an older obstacle.
-          (-hh' + n' * h', height')
+    -- | The player has clicked using their mouse.
+    -- | Process the "flap" of our flapper's wings.
+    Flap ->
+      case playerStatus of
+        Waiting ->
+          -- new game
+          ( model
+            { flapperVel   = V2 0 (-flapAccel)
+            , playerStatus = Playing
+            , lastFlap     = Nothing
+            }
+          , Cmd.none
+          )
+        Playing -> 
+          -- flap, if allowed
+          if stillFlapping timeScore lastFlap then (model, Cmd.none) else
+          ( model
+            { flapperVel   = V2 0 (-flapAccel)
+            , lastFlap     = Just timeScore
+            }
+          , Cmd.none
+          )
+        _ -> (model, Cmd.none)
+
+    Restart ->
+      if playerStatus /= Dead
+      then (model, Cmd.none)
+      else
+        ( model
+          { playerStatus = Waiting
+          , flapperPos   = V2 0 0
+          , flapperVel   = V2 0 0
+          , timeScore    = 0
+          }
+
+        -- Trigger a regeneration of obstacles
+        , Cmd.execute Rand.newStdGen SetupObstacles
+        )
+
+    -- | Initialize a list of all the obstacles in the game.
+    -- This works really nicely, as the list of obstacles
+    -- we produce is lazy and we can just keep generating
+    -- new obstacles out of until infinity - which is perfect,
+    -- as our player might just keep playing the game
+    -- for an eternity and beyond.
+    SetupObstacles rng -> 
+      (model
+      { obstacles = scanl generate NoObstacle $
+                    zip [0..] $
+                    Rand.randoms rng
+      }
+      , Cmd.none
+      )
+
+      where
+        -- | Generate an obstacle based based off the last obstacle
+        -- generated and some random input.
+        generate
+          :: Obstacle      -- | The last obstacle generated (or 'NoObstacle' if first).
+          -> (Int, Double) -- | First element is the obstacle index, second is random input between [0,1).
+          -> Obstacle      -- | The generated obstacle.
+        generate last (i, n) =
+          -- Randomly exclude obstacles, but don't do it for the first one.
+          if i > 0 && (n < lb || n > hb)
+          then NoObstacle
+          else
+            Obstacle
+              { obsTopLeft = V2 x y
+              , obsBottomRight = V2 (x + obsWidth) (y + height)
+              }
 
           where
-            height' = minHeight + (maxHeight - minHeight) * n'
+            lb = 0.2
+            hb = 0.8
 
-        calc Obstacle { .. } =
-          -- We want the obstacle being generated to be in a similar position
-          -- to the last one generated. So we adjust the last position randomly
-          -- by a portion of the last generated obstacle's height.
-          ( max (-hh') $ min hh' $ ty + (n' - 0.5) * maxHeight
-          , height')
+            -- We have to normalize the value here as we ignored < lb and > hb above.
+            -- Let's get this back to (0, 1]
+            n' = (n - lb) / (hb - lb)
+            x = obsOffset + (obsWidth + obsMargin) * fromIntegral i
+            V2 _ h = fromIntegral <$> windowDims
+            h' = h - lavaHeight
+            hh' = h / 2
+            minHeight = 100
+            maxHeight = 300
+            (y, height) = calc last
 
-          where
-            V2 tx ty = obsTopLeft
-            V2 bx by = obsBottomRight
-            lastHeight = by - ty
-            height' = min maxHeight $ lastHeight + (n' - 0.5) * minHeight
+            -- | Calc the obstacle height and
+            calc NoObstacle =
+              -- Generate a random y and random height. This can be anywhere on the screen as
+              -- we're not next to an older obstacle.
+              (-hh' + n' * h', height')
 
--- | Do nothing.
-update model _ = (model, Cmd.none)
+              where
+                height' = minHeight + (maxHeight - minHeight) * n'
+
+            calc Obstacle { .. } =
+              -- We want the obstacle being generated to be in a similar position
+              -- to the last one generated. So we adjust the last position randomly
+              -- by a portion of the last generated obstacle's height.
+              ( max (-hh') $ min hh' $ ty + (n' - 0.5) * maxHeight
+              , height')
+
+              where
+                V2 tx ty = obsTopLeft
+                V2 bx by = obsBottomRight
+                lastHeight = by - ty
+                height' = min maxHeight $ lastHeight + (n' - 0.5) * minHeight
+
+    -- | Do nothing.
+    _  -> (model, Cmd.none)
 
 subscriptions :: Sub SDLEngine Action
 subscriptions = Sub.batch
