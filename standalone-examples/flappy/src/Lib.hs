@@ -479,7 +479,7 @@ runGame = do
       loadAssets files game = loadAssets' files game M.empty
 
   loadAssets assetList $ \allAssets ->
-    run engine GameConfig 
+    run engine defaultConfig GameLifecycle 
       { initialFn       = initial
       , updateFn        = update
       , subscriptionsFn = subscriptions
