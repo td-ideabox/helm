@@ -7,6 +7,7 @@
 
 Fork of Helm, happy to accept any contributions! 
 
+
 ## Introduction
 
 Helm is a purely functional game engine written in Haskell and built with
@@ -88,11 +89,12 @@ particularly good start and `flappy` is a bit more advanced. We could always
 use more examples so if you end up making something cool and lightweight that
 you'd think would be a good one, feel free to open a pull request!
 
-### Standalone Examples
-If you want to just copy/paste a project which works out of the box (as though it were a fresh
-`stack new` project) please look in the `standalone-examples` directory. There are a couple
-differences between what a project actually looks like when it's built independent of this
-project. The stuff in `examples` is part of the helm source, so it plays by different rules. 
+### _Note about examples_
+The version of Helm on hackage _is not the most up-to-date build_. It appears that the version on github is v2.0, and has several really important patches! 
+
+This is particularly relevant to OSX users, which will experience a crazy flicking bug unless they are on LTS 8.18. 
+
+The examples in `standalone-examples` are essentially examples of brand new Stack projects (literally started with `stack new`) and have been configured to use THIS repo as their Helm dependency. Until the author of Helm updates the version on Hackage I recommend either drawing from this repo or the authors github repo!
 
 If you have installed Helm globally using Stack, you can run the `flappy` example using:
 
