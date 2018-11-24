@@ -8,7 +8,7 @@ jobs:
       - restore_cache:
           name: Restore Cached Dependencies
           keys:
-            - haskell-helm-cci-{{ checksum "package.yaml" }}
+            - helm-cci-{{ checksum "helm.cabal" }}
       - run:
           name: Resolve/Update Dependencies
           command: stack setup
@@ -20,7 +20,7 @@ jobs:
           command: stack install
       - save_cache:
           name: Cache Dependencies
-          key: haskell-helm-cci-{{ checksum "package.yaml" }}
+          key: helm-cci-{{ checksum "helm.cabal" }}
           paths:
             - ".stack-work"
       - store_artifacts: # upload build artifact for display in CircleCI
