@@ -1,8 +1,5 @@
 <p align="center">
-  <a href="http://helm-engine.org" title="Homepage"><img src="http://helm-engine.org/img/logo-alt.png" /></a>
-  <br>
-  <br>
-  <a href="https://circleci.com/gh/z0w0/helm" title="CircleCI"><img src="https://circleci.com/gh/z0w0/helm.svg?style=svg" /></a>
+  <a href="https://circleci.com/gh/td-ideabox/helm" title="CircleCI"><img src="https://circleci.com/gh/td-ideabox/helm.svg?style=svg" /></a>
 </p>
 
 Fork of Helm, happy to accept any contributions! 
