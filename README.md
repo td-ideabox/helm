@@ -1,6 +1,4 @@
-<p align="center">
-  <a href="https://circleci.com/gh/td-ideabox/helm" title="CircleCI"><img src="https://circleci.com/gh/td-ideabox/helm.svg?style=svg" /></a>
-</p>
+[![CircleCI](https://circleci.com/gh/td-ideabox/helm.svg?style=svg)](https://circleci.com/gh/td-ideabox/helm)
 
 Fork of Helm, happy to accept any contributions! 
 
