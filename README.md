@@ -1,6 +1,7 @@
 [![CircleCI](https://circleci.com/gh/td-ideabox/helm.svg?style=svg)](https://circleci.com/gh/td-ideabox/helm)
 
-Fork of Helm, happy to accept any contributions! 
+Fork of [Helm](https://github.com/z0w0/helm), happy to accept any contributions! Aim is to continue their work
+and provide a nice set of examples for those looking to get started with FRP GameDev in Haskell. 
 
 
 ## Introduction
